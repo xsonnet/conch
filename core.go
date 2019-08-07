@@ -13,7 +13,7 @@ type Router struct {
 
 type App struct {
 	Routers 	[]Router
-	Log			Log
+	LogPath		string
 }
 
 // 中间件
@@ -21,7 +21,7 @@ func (app App)middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		start := time.Now()
 		next.ServeHTTP(res, req)
-		app.Log.Out("%s (%v)", req.URL.Path, time.Since(start))
+		app.Log("%s (%v)", req.URL.Path, time.Since(start))
 	})
 }
 
@@ -39,6 +39,7 @@ func (app App) handleRouter(res http.ResponseWriter, req *http.Request) {
 			router.Func(Context{
 				Response: res,
 				Request: req,
+				App: app,
 			})
 		}
 	}
@@ -61,8 +62,13 @@ func (app App) Handle(pattern string, handle http.Handler) {
 // 启动监听
 func (app App) Run(addr string) {
 	http.Handle("/", app.middleware(http.HandlerFunc(app.handleRouter)))
-	app.Log.Out("Server started: " + addr)
+	app.Log("Server started: " + addr)
 	if err := http.ListenAndServe(addr, nil); err != nil {
-		app.Log.Out("Http listened failed: %s", err.Error())
+		app.Log("Http listened failed: %s", err.Error())
 	}
+}
+
+// 打印日志
+func (app App) Log(format string, arg ...interface{}) {
+	Log{Path: app.LogPath}.Out(format, arg...)
 }

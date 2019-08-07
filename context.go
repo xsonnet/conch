@@ -8,6 +8,7 @@ import (
 type Context struct {
 	Response 	http.ResponseWriter
 	Request 	*http.Request
+	App			App
 }
 
 type Controller map[string]func(ctx Context)
@@ -27,4 +28,8 @@ func (ctx Context) Json(data ...interface{}) {
 	}
 	ctx.Response.Header().Set("Content-Type", "application/json")
 	_, _ = ctx.Response.Write(str)
+}
+
+func (ctx Context) Log(format string, arg ...interface{}) {
+	Log{Path: ctx.App.LogPath}.Out(format, arg...)
 }

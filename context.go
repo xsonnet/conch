@@ -12,6 +12,7 @@ type Context struct {
 }
 
 type Controller map[string]func(ctx Context)
+type Param map[string]interface{}
 
 func (ctx Context) Get(name string) string {
 	if ctx.Request.Method == "POST" {
